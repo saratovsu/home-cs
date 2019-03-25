@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load staticfiles my_filters %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <!--<div class="col-3">-->
+                <!--<div class="block left-menu">-->
+                    <!--<a href="{% url 'profile' %}">-->
+                        <!--<i class="fa fa-user-circle"></i> Мой профиль-->
+                    <!--</a>-->
+                    <!--<a href="{% url 'home' %}">-->
+                        <!--<i class="fa fa-newspaper-o"></i> Новости-->
+                    <!--</a>-->
+                <!--</div>-->
+            <!--</div>-->
+            <div class="col-7 content">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="" method="get">
+                            {{ filter.form.as_p }}
+                            <input type="submit" value="Фильтр" />
+                        </form>
+                        <form method="post" name="new-post-form" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <label for="id_electric">Электроэнергия</label>
+                            <textarea class="form-control form-control-sm" id="id_electric" type="text" name="electric"
+                                      placeholder="Электричество"></textarea>
+                            <label for="id_cool">Холодная вода</label>
+                            <textarea class="form-control form-control-sm" id="id_cool" type="text" name="cool"
+                                      placeholder="Холодная вода"></textarea>
+                            <label for="id_hot">Горячая вода</label>
+                            <textarea class="form-control form-control-sm" id="id_hot" type="text" name="hot"
+                                      placeholder="Горячая вода"></textarea>
+                            <input class="form-control btn btn-outline-success btn-sm" type="submit" value="Добавить">
+                        </form>
+                    </div>
+                </div>
+                <div class="timeline">
+                    {% for post in posts %}
+                        <div class="card">
+                            <div class="card-body post">
+                                <div class="post-title">
+                                    <div class="post-author">
+                                        <a href="{% url 'view_user' post.author.username %}">
+                                            {{ post.author.get_full_name }}
+                                        </a>
+                                    </div>
+                                    <div class="post-datetime">
+                                        {{ post.datetime|date:"d M Y H:i" }}
+                                    </div>
+                                </div>
+                                <div class="post-text">
+                                    {{ post|default_if_none:""|linebreaks|urlize }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <!--<div class="col-3">-->
+                <!--<div class="block" style="text-align: center;">-->
+                    <!--<b>{{ user.get_full_name }}</b>-->
+                    <!--{% if user.profile.avatar.name %}-->
+                        <!--<img src="{{ user.profile.avatar.url }}" class="mainpage-avatar-img img-thumbnail">-->
+                    <!--{% else %}-->
+                        <!--<img src="{% static 'img/user.jpg' %}" class="mainpage-avatar-img img-thumbnail">-->
+                    <!--{% endif %}-->
+                    <!--<div class="right-menu-links">-->
+                        <!--<a href="{% url 'profile' %}" class="btn btn-outline-primary btn-sm">-->
+                            <!--<i class="fa fa-user-circle"></i> Мой профиль-->
+                        <!--</a>-->
+                        <!--<a href="{% url 'edit_profile' %}" class="btn btn-outline-success btn-sm">-->
+                            <!--<i class="fa fa-pencil-square"></i> Редактировать-->
+                        <!--</a>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
+        </div>
+    </div>
+{% endblock %}

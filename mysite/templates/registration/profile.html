@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block content %}
+    <div class="container content">
+        <h2>{{ selected_user.get_full_name }}</h2>
+
+        <div class="row" style="margin-left: 20px;">
+            <div class="col5">
+                <br>
+                <br>
+                {% if selected_user.id == user.id %}
+                    <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-info">Редактировать профиль</a>
+                {% endif %}
+            </div>
+            <div class="col">
+                <dl class="row">
+                    <dt class="col-sm-3 text-right">Полное имя</dt>
+                    <dd class="col-sm-9">{{ selected_user.get_full_name }}</dd>
+
+                    <dt class="col-sm-3 text-right">Квартира</dt>
+                    <dd class="col-sm-9">{{ selected_user.profile.room }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+{% endblock %}
