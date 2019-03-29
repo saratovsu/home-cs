@@ -1,3 +1,9 @@
 Django
 djangorestframework
 django-filter
+dj-database-url
+django-heroku
+gunicorn
+psycopg2
+pytz
+whitenoise
