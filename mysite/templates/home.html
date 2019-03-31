@@ -1,15 +1,10 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 {% block content %}
-    <div class="container content">
-        <h2 class="text-center">Добро пожаловать в программу учета показаний счетчиков</h2>
-        <div class="text-center">
-            <img src="{% static 'img/network.png' %}">
-            <br>
-            <br>
-            <br>
-            <a href="{% url 'login' %}" class="btn btn-info">Войти</a>
-            <a href="{% url 'register' %}" class="btn btn-primary">Регистрация</a>
-        </div>
+            <h2 class="text-center">Регистрация показаний приборов учета</h2>
+            <div class="text-center">
+                <img src="{% static 'img/devices.jpg' %}">
+            </div>
     </div>
+</div>
 {% endblock %}

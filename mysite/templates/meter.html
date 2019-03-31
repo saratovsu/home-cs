@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load staticfiles my_filters %}
+
+{% block leftrow %}
+{% endblock %}
+
+{% block content %}
+    {% if user.is_superuser %}
+    {% else %}
+    <div class="card">
+        <div class="card-body">
+            <form method="post" name="new-post-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label for="id_electric">Электроэнергия</label>
+                <textarea class="form-control form-control-sm" id="id_electric" type="text" name="electric"
+                          placeholder=0></textarea>
+                <label for="id_cool">Холодная вода</label>
+                <textarea class="form-control form-control-sm" id="id_cool" type="text" name="cool"
+                          placeholder=0></textarea>
+                <label for="id_hot">Горячая вода</label>
+                <textarea class="form-control form-control-sm" id="id_hot" type="text" name="hot"
+                          placeholder=0></textarea>
+                <input class="form-control btn btn-outline-success btn-sm" type="submit" value="Добавить">
+            </form>
+        </div>
+    </div>
+    {% endif %}
+    <div class="timeline">
+        {% for meter in meters %}
+            <div class="card">
+                <div class="card-body post">
+                    <div class="post-title">
+                        <p>{{ meter.author.get_full_name}}</p>
+                        <div class="post-datetime">
+                            <p>{{ meter.datetime|date:"d M Y H:i" }}</p>
+                        </div>
+                    </div>
+                    <div class="post-text">
+                        {{ meter.electric }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block rightrow %}
+{% endblock %}

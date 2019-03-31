@@ -9,9 +9,9 @@ from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
 
-from .forms import RegisterForm, ProfileForm, PostForm
-from .models import Profile, Post
-from .filters import PostFilter
+from mysite.forms import RegisterForm, PostForm, MeterForm
+#ProfileForm
+from mysite.models import Profile, Post, Comment, Meter
 
 
 class LogoutView(View):
@@ -20,14 +20,25 @@ class LogoutView(View):
         return redirect("/")
 
 
-class ProfileView(TemplateView):
-    template_name = "registration/profile.html"
+class MeterView(TemplateView):
+    template_name = "meter.html"
 
     def dispatch(self, request, *args, **kwargs):
-        if not Profile.objects.filter(user=request.user).exists():
-            return redirect(reverse("edit_profile"))
+        # if not request.user.is_authenticated:
+        #     return render(request, self.template_name)
+        form = MeterForm()
+        if request.method == 'POST':
+            form = MeterForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.instance.author = request.user
+                form.save()
+                return redirect(reverse("meter"))
+        if request.user.is_superuser:
+            meters = Meter.objects.all().order_by('-pk')
+        else:
+            meters = Meter.objects.all().filter(author=request.user).order_by('-pk')
         context = {
-            'selected_user': request.user
+            'meters': meters
         }
         return render(request, self.template_name, context)
 
@@ -43,7 +54,8 @@ class RegisterView(TemplateView):
                 self.create_new_user(form)
                 messages.success(request, u"Вы успешно зарегистрировались!")
                 return redirect(reverse("login"))
-
+            else:
+                messages.error(request, 'The form is invalid.')
         context = {
             'form': form
         }
@@ -53,73 +65,47 @@ class RegisterView(TemplateView):
         email = None
         if 'email' in form.cleaned_data:
             email = form.cleaned_data['email']
-            User.objects.create_user(form.cleaned_data['username'],
+            user = User.objects.create_user(form.cleaned_data['username'],
                                      email, form.cleaned_data['password'],
                                      first_name=form.cleaned_data['first_name'],
                                      last_name=form.cleaned_data['last_name'])
+            Profile.objects.create(user=user, room=form.cleaned_data['room'])
 
 
-class HomeView(TemplateView):
-    template_name = "home.html"
-    timeline_template_name = "timeline.html"
+class PostView(TemplateView):
+    timeline_template_name = "post.html"
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return render(request, self.template_name)
+        # if not request.user.is_authenticated:
+        #     return render(request, self.template_name)
 
         if request.method == 'POST':
             form = PostForm(request.POST, request.FILES)
             if form.is_valid():
                 form.instance.author = request.user
                 form.save()
-                return redirect(reverse("home"))
-
-        # date_list = ['month', 'year', 'all']
-        # date_filter = PostFilter(request.GET, queryset=date_list)
-        # f = PostFilter(request.GET,queryset=Post.objects.all().filter('datetime').order_by('-pk'))
-
-        f = PostFilter(request.GET,queryset=Post.objects.all().filter(author=request.user).order_by('datetime'))
+                return redirect(reverse("post"))
+        if request.user.is_superuser:
+            post = Post.objects.all()
+        else:
+            post = Post.objects.all().filter(author=request.user)
         context = {
-            # 'posts': Post.objects.filter(author=request.user).order_by('datetime'),
-            'filter': f,
-            'posts': f.qs
+            'posts': post
         }
         return render(request, self.timeline_template_name, context)
 
 
-class EditProfileView(TemplateView):
-    template_name = "registration/edit_profile.html"
-
+class PostCommentView(View):
     def dispatch(self, request, *args, **kwargs):
-        form = ProfileForm(instance=self.get_profile(request.user))
-        if request.method == 'POST':
-            form = ProfileForm(request.POST, request.FILES, instance=self.get_profile(request.user))
-            if form.is_valid():
-                form.instance.user = request.user
-                form.save()
-                messages.success(request, u"Профиль успешно обновлен!")
-                return redirect(reverse("profile"))
-        return render(request, self.template_name, {'form': form})
-
-    def get_profile(self, user):
-        try:
-            return user.profile
-        except:
-            return None
+        post_id = request.GET.get("post_id")
+        comment = request.GET.get("comment")
+        if comment and post_id:
+            post = Post.objects.get(pk=post_id)
+            comment = Comment(text=comment, post=post, author=request.user)
+            comment.save()
+            return render(request, "blocks/comment.html", {'comment': comment})
+        return HttpResponse(status=500, content="")
 
 
-class ViewUserView(TemplateView):
-    template_name = "registration/profile.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        username = kwargs['username']
-        try:
-            user = User.objects.get(username=username)
-            return render(request, self.template_name, {'selected_user': user})
-        except:
-            return redirect("/")
-
-# def ViewPostFilter(request):
-#     date_list = ['month', 'year', 'all']
-#     date_filter = PostFilter(request.GET, queryset=date_list)
-#     return render(request, 'search/user_list.html', {'filter': date_filter})
+class HomeView(TemplateView):
+    template_name = "home.html"

@@ -18,20 +18,24 @@ from django.conf.urls import url, include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth.views import LoginView
+from django.views.generic.base import RedirectView
 
-from mysite.views import HomeView, LogoutView, RegisterView, ProfileView, EditProfileView
-from mysite.views import ViewUserView #, PostView
+from mysite.views import PostView, LogoutView, RegisterView, PostCommentView, HomeView, MeterView
+    # , PostView
 
 urlpatterns = [
     url(r'^$', HomeView.as_view(), name="home"),
 
+    url(r'^post/$', PostView.as_view(), name="post"),
+    url(r'^post-comment/$', PostCommentView.as_view()),
+
+    url(r'^meter/$', MeterView.as_view(), name="meter"),
+
     url(r'^accounts/login/$', LoginView.as_view(template_name='registration/login.html'), name="login"),
     url(r'^accounts/logout/$', LogoutView.as_view(), name="logout"),
     url(r'^accounts/register/$', RegisterView.as_view(), name="register"),
-    url(r'^accounts/profile/$', ProfileView.as_view(), name="profile"),
-    url(r'^accounts/profile/edit/$', EditProfileView.as_view(), name="edit_profile"),
+    url(r'^accounts/profile/$',  RedirectView.as_view(url='/', permanent=False), name="profile"),
 
-    url(r'^user/@(?P<username>[-\w\s\d]+)$', ViewUserView.as_view(), name="view_user"),
-
-    url(r'^admin/', admin.site.urls),
 ]
+              # + static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS) +\
+              # static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
