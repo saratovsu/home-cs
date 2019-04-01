@@ -61,7 +61,11 @@ class PostForm(forms.ModelForm):
         model = Post
         exclude = ['author']
 
-class MeterForm(forms.ModelForm):
+class MeterAddForm(forms.ModelForm):
     class Meta:
         model = Meter
         exclude = ['author']
+
+class MeterFilterForm(forms.Form):
+    choices = [('1', 'Все'), ('2', 'Месяц'), ('3', 'Квартал'), ('4', 'Год'), ]
+    rangechoice = forms.ChoiceField(widget=forms.Select(), choices=(choices), required=True, label='Диапазон')

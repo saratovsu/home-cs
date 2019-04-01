@@ -1,4 +1,5 @@
 # coding=utf-8
+import datetime
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
@@ -8,10 +9,12 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
+from django_tables2 import RequestConfig
 
-from mysite.forms import RegisterForm, PostForm, MeterForm
+from .forms import RegisterForm, PostForm, MeterAddForm, MeterFilterForm
 #ProfileForm
-from mysite.models import Profile, Post, Comment, Meter
+from .models import Profile, Post, Comment, Meter
+from .tables import MeterTable
 
 
 class LogoutView(View):
@@ -26,21 +29,53 @@ class MeterView(TemplateView):
     def dispatch(self, request, *args, **kwargs):
         # if not request.user.is_authenticated:
         #     return render(request, self.template_name)
-        form = MeterForm()
+        addform = MeterAddForm(request.POST or None)
+        filterform = MeterFilterForm(request.POST or None, initial={'rangechoice':request.session.get('rangechoice',1)})
+        choice = 1
         if request.method == 'POST':
-            form = MeterForm(request.POST, request.FILES)
-            if form.is_valid():
-                form.instance.author = request.user
-                form.save()
+            # print(request.POST)
+            if addform.is_valid():
+                addform.instance.author = request.user
+                addform.save()
                 return redirect(reverse("meter"))
+            if filterform.is_valid():
+                choice = filterform['rangechoice'].value()
+                # print(filterform.fields['rangechoice'].choices, choice)
+                request.session['rangechoice'] = filterform['rangechoice'].value()
+                return redirect(reverse("meter"))
+
         if request.user.is_superuser:
-            meters = Meter.objects.all().order_by('-pk')
+            meters = self.filter_by_choice(Meter.objects.all(),
+                                           request.session.get('rangechoice',1)).order_by('-pk')
         else:
-            meters = Meter.objects.all().filter(author=request.user).order_by('-pk')
+            meters = self.filter_by_choice(Meter.objects.all().filter(author=request.user),
+                                           request.session.get('rangechoice',1)).order_by('-pk')
+
+        table = MeterTable(meters)
+        RequestConfig(request).configure(table)
+
         context = {
-            'meters': meters
+            'addform': addform,
+            'filterform': filterform,
+            'meters': table
         }
         return render(request, self.template_name, context)
+
+    def filter_by_choice(self, input, choice=1):
+        now = datetime.datetime.now()
+        if choice == '1':
+            return input
+        elif choice == '2':
+            dt = now - datetime.timedelta(days=30)
+        elif choice == '3':
+            dt = now - datetime.timedelta(days=30*4)
+        elif choice == '4':
+            dt = now - datetime.timedelta(days=365)
+            # dt = now - datetime.timedelta(minutes=2)
+        else:
+            return input
+        return input.filter(datetime__gte=dt)
+
 
 
 class RegisterView(TemplateView):

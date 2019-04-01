@@ -6,9 +6,9 @@ from django.db import models
 class Meter(models.Model):
     datetime = models.DateTimeField(verbose_name='Дата', auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=u"Автор", related_name="meters")
-    electric = models.FloatField(verbose_name='Электричество')
-    cool = models.FloatField(verbose_name='Холодная вода')
-    hot = models.FloatField(verbose_name='Горячая вода')
+    electric = models.FloatField(default=0.0, verbose_name='Электричество')
+    cool = models.FloatField(default=0.0, verbose_name='Холодная вода')
+    hot = models.FloatField(default=0.0, verbose_name='Горячая вода')
 
 
 class Profile(models.Model):
