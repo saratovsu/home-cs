@@ -7,7 +7,7 @@
         <div class="card-body">
             <form method="post" name="firter-post-form" id=filterform enctype="multipart/form-data">
                 {% csrf_token %}
-                {{ filterform.as_table }}
+                {{ filterform.as_p }}
                 <input class="form-control btn btn-outline-success btn-sm" type="submit" value="Фильтр">
             </form>
         </div>

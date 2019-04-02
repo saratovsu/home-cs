@@ -23,7 +23,7 @@
             <div class="card">
                 <div class="card-body post">
                     <div class="post-title">
-                        <p>{{ post.author.get_full_name}}</p>
+                        <p><b>{{ post.author.get_full_name}}</b></p>
                         <div class="post-datetime">
                             <p>{{ post.datetime|date:"d M Y H:i" }}</p>
                         </div>
@@ -36,8 +36,6 @@
                     <div id="comments-list-post-{{ post.id }}">
                         {% for comment in post.comments.all %}
                             {% place_comment comment %}
-                            <p>1</p>
-                            <p>1</p>
                         {% endfor %}
                     </div>
                     <div class="comment-form">

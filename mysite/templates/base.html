@@ -3,8 +3,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Мини Соцсеть</title>
+    <title>Регистрация показаний приборов учета</title>
     <link href="{% static 'css/bootstrap-4/bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-4/bootstrap.min.cs' %}" rel="stylesheet">
     <link href="{% static 'css/bootstrap-4/bootstrap-grid.css' %}" rel="stylesheet">
     <link href="{% static 'css/bootstrap-4/bootstrap-reboot.css' %}" rel="stylesheet">
     <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet">
@@ -23,14 +24,6 @@
         <div class="row">
             <div class="col-3">
                 {% block leftrow %}
-<!--                    <div class="block left-menu">-->
-<!--                        <a href="{% url 'post' %}">-->
-<!--                            <i class="fa fa-newspaper-o"></i> Новости-->
-<!--                        </a>-->
-<!--                        <a href="{% url 'post' %}">-->
-<!--                            <i class="fa fa-users"></i> Мои друзья-->
-<!--                        </a>-->
-<!--                    </div>-->
                 {% endblock %}
             </div>
             <div class="col-7 content">
@@ -38,16 +31,7 @@
                 {% endblock %}
             </div>
             <div class="col-2">
-<!--                <div class="col-2">-->
                 {% block rightrow %}
-<!--                <div class="block left-menu">-->
-<!--                    <a href="{% url 'post' %}">-->
-<!--                        <i class="fa fa-newspaper-o"></i> Новости-->
-<!--                    </a>-->
-<!--                    <a href="{% url 'post' %}">-->
-<!--                        <i class="fa fa-users"></i> Мои друзья-->
-<!--                    </a>-->
-<!--                </div>-->
                 {% endblock %}
             </div>
             </div>

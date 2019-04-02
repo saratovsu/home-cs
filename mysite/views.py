@@ -29,9 +29,12 @@ class MeterView(TemplateView):
     def dispatch(self, request, *args, **kwargs):
         # if not request.user.is_authenticated:
         #     return render(request, self.template_name)
-        addform = MeterAddForm(request.POST or None)
-        filterform = MeterFilterForm(request.POST or None, initial={'rangechoice':request.session.get('rangechoice',1)})
-        choice = 1
+        addform = MeterAddForm(request.POST or None, request=request)
+
+        filterform = MeterFilterForm(request.POST or None,
+                                     initial={'rangechoice':request.session.get('rangechoice',1),
+                                              'room':request.session.get('room'),
+                                              })
         if request.method == 'POST':
             # print(request.POST)
             if addform.is_valid():
@@ -39,17 +42,22 @@ class MeterView(TemplateView):
                 addform.save()
                 return redirect(reverse("meter"))
             if filterform.is_valid():
-                choice = filterform['rangechoice'].value()
-                # print(filterform.fields['rangechoice'].choices, choice)
                 request.session['rangechoice'] = filterform['rangechoice'].value()
+                if not request.user.is_superuser:
+                    request.session['room'] = None
+                else:
+                    request.session['room'] = filterform.cleaned_data['room']
+                    # print(filterform['profile'])
+                    pass
                 return redirect(reverse("meter"))
 
         if request.user.is_superuser:
-            meters = self.filter_by_choice(Meter.objects.all(),
-                                           request.session.get('rangechoice',1)).order_by('-pk')
+            meters = Meter.objects.all()
+            meters = self.filter_by_choice(meters, request.session.get('rangechoice', 1))
+            meters = self.filter_by_name(meters, request.session.get('room')).order_by('-pk')
         else:
-            meters = self.filter_by_choice(Meter.objects.all().filter(author=request.user),
-                                           request.session.get('rangechoice',1)).order_by('-pk')
+            meters = Meter.objects.all().filter(author=request.user)
+            meters = self.filter_by_choice(meters, request.session.get('rangechoice',1)).order_by('-pk')
 
         table = MeterTable(meters)
         RequestConfig(request).configure(table)
@@ -60,6 +68,12 @@ class MeterView(TemplateView):
             'meters': table
         }
         return render(request, self.template_name, context)
+
+    def filter_by_name(self, input, room):
+        if room is None:
+            return input
+        user = Profile.objects.get(room=room).user
+        return input.filter(author=user)
 
     def filter_by_choice(self, input, choice=1):
         now = datetime.datetime.now()

@@ -62,10 +62,29 @@ class PostForm(forms.ModelForm):
         exclude = ['author']
 
 class MeterAddForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(MeterAddForm, self).__init__(*args, **kwargs)
+
     class Meta:
         model = Meter
         exclude = ['author']
 
+    def clean(self):
+        cleaned_data = super(MeterAddForm, self).clean()
+        electric = cleaned_data.get('electric')
+        cool = cleaned_data.get('cool')
+        hot = cleaned_data.get('hot')
+        try:
+            meter = Meter.objects.filter(author=self.request.user).latest('id')
+            if electric < meter.electric or cool < meter.cool or hot < meter.hot:
+                raise forms.ValidationError('Новые показания приборов учет должны быть не меньше предыдущих')
+        except Meter.DoesNotExist:
+            pass
+        return cleaned_data
+
+
 class MeterFilterForm(forms.Form):
     choices = [('1', 'Все'), ('2', 'Месяц'), ('3', 'Квартал'), ('4', 'Год'), ]
     rangechoice = forms.ChoiceField(widget=forms.Select(), choices=(choices), required=True, label='Диапазон')
+    room = forms.ModelChoiceField(queryset=Profile.objects.all().values_list('room', flat=True), required=False, label='Квартира')

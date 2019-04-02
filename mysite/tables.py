@@ -5,3 +5,4 @@ class MeterTable(tables.Table):
     class Meta:
         model = Meter
         template_name = 'django_tables2/bootstrap.html'
+        exclude = ('id',)
