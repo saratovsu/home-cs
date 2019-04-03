@@ -74,6 +74,8 @@ class MeterAddForm(forms.ModelForm):
         electric = cleaned_data.get('electric')
         cool = cleaned_data.get('cool')
         hot = cleaned_data.get('hot')
+        if electric < 0 or cool < 0 or hot < 0:
+            raise forms.ValidationError('Значения не должны быть отрицательными.')
         try:
             meter = Meter.objects.all().filter(author=self.request.user).latest('id')
             if electric < meter.electric or cool < meter.cool or hot < meter.hot:

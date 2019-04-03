@@ -37,6 +37,4 @@ urlpatterns = [
     url(r'^accounts/register/$', RegisterView.as_view(), name="register"),
     url(r'^accounts/profile/$',  login_required(RedirectView.as_view(url='/', permanent=False)), name="profile"),
 
-]
-              # + static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS) +\
-              # static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]  + static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS) #+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
