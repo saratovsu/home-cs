@@ -1,4 +1,5 @@
 # coding=utf-8
+import datetime
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
@@ -8,10 +9,13 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
+from django_tables2 import RequestConfig
+from django.contrib.auth.decorators import login_required
 
-from mysite.forms import RegisterForm, PostForm, MeterForm
+from .forms import RegisterForm, PostForm, MeterAddForm, MeterFilterForm
 #ProfileForm
-from mysite.models import Profile, Post, Comment, Meter
+from .models import Profile, Post, Comment, Meter
+from .tables import MeterTable
 
 
 class LogoutView(View):
@@ -26,21 +30,66 @@ class MeterView(TemplateView):
     def dispatch(self, request, *args, **kwargs):
         # if not request.user.is_authenticated:
         #     return render(request, self.template_name)
-        form = MeterForm()
+        addform = MeterAddForm(request.POST or None, request=request)
+
+        filterform = MeterFilterForm(request.POST or None,
+                                     initial={'rangechoice':request.session.get('rangechoice',1),
+                                              'room':request.session.get('room'),
+                                              })
         if request.method == 'POST':
-            form = MeterForm(request.POST, request.FILES)
-            if form.is_valid():
-                form.instance.author = request.user
-                form.save()
+            if 'electric' in request.POST and addform.is_valid():
+                addform.instance.author = request.user
+                addform.save()
                 return redirect(reverse("meter"))
+            if 'room' in request.POST and filterform.is_valid():
+                request.session['rangechoice'] = filterform['rangechoice'].value()
+                if not request.user.is_superuser:
+                    request.session['room'] = None
+                else:
+                    request.session['room'] = filterform.cleaned_data['room']
+                    # print(filterform['profile'])
+                    pass
+                return redirect(reverse("meter"))
+
         if request.user.is_superuser:
-            meters = Meter.objects.all().order_by('-pk')
+            meters = Meter.objects.all()
+            meters = self.filter_by_choice(meters, request.session.get('rangechoice', 1))
+            meters = self.filter_by_name(meters, request.session.get('room')).order_by('-pk')
         else:
-            meters = Meter.objects.all().filter(author=request.user).order_by('-pk')
+            meters = Meter.objects.all().filter(author=request.user)
+            meters = self.filter_by_choice(meters, request.session.get('rangechoice',1)).order_by('-pk')
+
+        table = MeterTable(meters)
+        RequestConfig(request).configure(table)
+
         context = {
-            'meters': meters
+            'addform': addform,
+            'filterform': filterform,
+            'meters': table
         }
         return render(request, self.template_name, context)
+
+    def filter_by_name(self, input, room):
+        if room is None:
+            return input
+        user = Profile.objects.get(room=room).user
+        return input.filter(author=user)
+
+    def filter_by_choice(self, input, choice=1):
+        now = datetime.datetime.now()
+        if choice == '1':
+            return input
+        elif choice == '2':
+            dt = now - datetime.timedelta(days=30)
+        elif choice == '3':
+            dt = now - datetime.timedelta(days=30*4)
+        elif choice == '4':
+            dt = now - datetime.timedelta(days=365)
+            # dt = now - datetime.timedelta(minutes=2)
+        else:
+            return input
+        return input.filter(datetime__gte=dt)
+
 
 
 class RegisterView(TemplateView):

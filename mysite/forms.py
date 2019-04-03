@@ -6,7 +6,7 @@ from difflib import SequenceMatcher
 
 
 class RegisterForm(forms.Form):
-    username = forms.CharField(label=u"Имя пользователя")
+    username = forms.CharField(label='Имя пользователя')
     first_name = forms.CharField(label=u"Имя")
     last_name = forms.CharField(label=u"Фамилия")
     email = forms.EmailField(label=u"Email", required=True)
@@ -29,9 +29,8 @@ class RegisterForm(forms.Form):
             raise forms.ValidationError("Пользователь с таким адресом электронной почты уже существует.")
 
         user = User.objects.all().filter(username=username)
-        print(user)
         if user:
-            raise forms.ValidationError("Такой пользователь уже существует.")
+            raise forms.ValidationError("Пользователь с таким именем уже существует.")
 
         profile = Profile.objects.all().filter(room=room)
         if profile:
@@ -61,7 +60,30 @@ class PostForm(forms.ModelForm):
         model = Post
         exclude = ['author']
 
-class MeterForm(forms.ModelForm):
+class MeterAddForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(MeterAddForm, self).__init__(*args, **kwargs)
+
     class Meta:
         model = Meter
         exclude = ['author']
+
+    def clean(self):
+        cleaned_data = super(MeterAddForm, self).clean()
+        electric = cleaned_data.get('electric')
+        cool = cleaned_data.get('cool')
+        hot = cleaned_data.get('hot')
+        try:
+            meter = Meter.objects.all().filter(author=self.request.user).latest('id')
+            if electric < meter.electric or cool < meter.cool or hot < meter.hot:
+                raise forms.ValidationError('Новые показания приборов учет должны быть не меньше предыдущих.')
+        except Meter.DoesNotExist:
+            pass
+        return cleaned_data
+
+
+class MeterFilterForm(forms.Form):
+    choices = [('1', 'Все'), ('2', 'Месяц'), ('3', 'Квартал'), ('4', 'Год'), ]
+    rangechoice = forms.ChoiceField(widget=forms.Select(), choices=(choices), required=True, label='Диапазон')
+    room = forms.ModelChoiceField(queryset=Profile.objects.all().values_list('room', flat=True), required=False, label='Квартира')

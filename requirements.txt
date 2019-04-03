@@ -7,3 +7,5 @@ gunicorn
 psycopg2
 pytz
 whitenoise
+django-tables2
+
