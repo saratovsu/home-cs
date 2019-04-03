@@ -128,7 +128,7 @@ html {
 
 .bg {
   /* The image used */
-  background-image: url("img/home.jpeg");
+  background-image: url("../img/home.jpeg");
 
   /* Full height */
   height: 100%;
