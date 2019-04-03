@@ -6,7 +6,7 @@ from difflib import SequenceMatcher
 
 
 class RegisterForm(forms.Form):
-    username = forms.CharField(label=u"Имя пользователя")
+    username = forms.CharField(label='Имя пользователя')
     first_name = forms.CharField(label=u"Имя")
     last_name = forms.CharField(label=u"Фамилия")
     email = forms.EmailField(label=u"Email", required=True)
@@ -29,9 +29,8 @@ class RegisterForm(forms.Form):
             raise forms.ValidationError("Пользователь с таким адресом электронной почты уже существует.")
 
         user = User.objects.all().filter(username=username)
-        print(user)
         if user:
-            raise forms.ValidationError("Такой пользователь уже существует.")
+            raise forms.ValidationError("Пользователь с таким именем уже существует.")
 
         profile = Profile.objects.all().filter(room=room)
         if profile:
@@ -76,9 +75,9 @@ class MeterAddForm(forms.ModelForm):
         cool = cleaned_data.get('cool')
         hot = cleaned_data.get('hot')
         try:
-            meter = Meter.objects.filter(author=self.request.user).latest('id')
+            meter = Meter.objects.all().filter(author=self.request.user).latest('id')
             if electric < meter.electric or cool < meter.cool or hot < meter.hot:
-                raise forms.ValidationError('Новые показания приборов учет должны быть не меньше предыдущих')
+                raise forms.ValidationError('Новые показания приборов учет должны быть не меньше предыдущих.')
         except Meter.DoesNotExist:
             pass
         return cleaned_data

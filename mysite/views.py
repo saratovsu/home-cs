@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
 from django_tables2 import RequestConfig
+from django.contrib.auth.decorators import login_required
 
 from .forms import RegisterForm, PostForm, MeterAddForm, MeterFilterForm
 #ProfileForm
@@ -36,12 +37,11 @@ class MeterView(TemplateView):
                                               'room':request.session.get('room'),
                                               })
         if request.method == 'POST':
-            # print(request.POST)
-            if addform.is_valid():
+            if 'electric' in request.POST and addform.is_valid():
                 addform.instance.author = request.user
                 addform.save()
                 return redirect(reverse("meter"))
-            if filterform.is_valid():
+            if 'room' in request.POST and filterform.is_valid():
                 request.session['rangechoice'] = filterform['rangechoice'].value()
                 if not request.user.is_superuser:
                     request.session['room'] = None
