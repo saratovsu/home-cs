@@ -46,12 +46,11 @@ class MeterView(TemplateView):
                 if not request.user.is_superuser:
                     request.session['room'] = None
                 else:
-                    request.session['room'] = filterform.cleaned_data['room']
-                    # print(filterform['profile'])
-                    pass
+                    request.session['room'] = filterform['room'].value()
                 return redirect(reverse("meter"))
 
         if request.user.is_superuser:
+            print(request.session.get('room'))
             meters = Meter.objects.all()
             meters = self.filter_by_choice(meters, request.session.get('rangechoice', 1))
             meters = self.filter_by_name(meters, request.session.get('room')).order_by('-pk')
@@ -70,10 +69,13 @@ class MeterView(TemplateView):
         return render(request, self.template_name, context)
 
     def filter_by_name(self, input, room):
-        if room is None:
+        if room == '' or room is None:
             return input
-        user = Profile.objects.get(room=room).user
-        return input.filter(author=user)
+        try:
+            user = Profile.objects.get(id=room).user
+            return input.filter(author=user)
+        except:
+            return input
 
     def filter_by_choice(self, input, choice=1):
         now = datetime.datetime.now()
@@ -89,7 +91,6 @@ class MeterView(TemplateView):
         else:
             return input
         return input.filter(datetime__gte=dt)
-
 
 
 class RegisterView(TemplateView):
@@ -129,11 +130,18 @@ class PostView(TemplateView):
         #     return render(request, self.template_name)
 
         if request.method == 'POST':
-            form = PostForm(request.POST, request.FILES)
-            if form.is_valid():
-                form.instance.author = request.user
-                form.save()
-                return redirect(reverse("post"))
+            if 'text' in request.POST:
+                form = PostForm(request.POST, request.FILES)
+                if form.is_valid():
+                    form.instance.author = request.user
+                    form.save()
+                    return redirect(reverse("post"))
+            else:
+                first = Post.objects.all().first()
+                if first is not None:
+                        if Comment.objects.filter(post=first.id).count() == 0:
+                            first.delete()
+
         if request.user.is_superuser:
             post = Post.objects.all()
         else:

@@ -69,23 +69,51 @@ class MeterAddForm(forms.ModelForm):
         model = Meter
         exclude = ['author']
 
-    def clean(self):
-        cleaned_data = super(MeterAddForm, self).clean()
-        electric = cleaned_data.get('electric')
-        cool = cleaned_data.get('cool')
-        hot = cleaned_data.get('hot')
-        if electric < 0 or cool < 0 or hot < 0:
-            raise forms.ValidationError('Значения не должны быть отрицательными.')
+    def clean_electric(self):
+        electric = self.cleaned_data['electric']
+        if electric is None:
+            return electric
+        if electric < 0:
+            raise forms.ValidationError('Значение не должно быть отрицательными.')
         try:
             meter = Meter.objects.all().filter(author=self.request.user).latest('id')
-            if electric < meter.electric or cool < meter.cool or hot < meter.hot:
-                raise forms.ValidationError('Новые показания приборов учет должны быть не меньше предыдущих.')
+            if electric < meter.electric:
+                raise forms.ValidationError('Новое значение должно быть не меньше предыдущего.')
         except Meter.DoesNotExist:
             pass
-        return cleaned_data
+        return electric
+
+    def clean_cool(self):
+        cool = self.cleaned_data['cool']
+        if cool is None:
+            return cool
+        if cool < 0:
+            raise forms.ValidationError('Значение не должно быть отрицательными.')
+        try:
+            meter = Meter.objects.all().filter(author=self.request.user).latest('id')
+            if cool < meter.cool:
+                raise forms.ValidationError('Новое значение должно быть не меньше предыдущего.')
+        except Meter.DoesNotExist:
+            pass
+        return cool
+
+    def clean_hot(self):
+        hot = self.cleaned_data['hot']
+        if hot is None:
+            return hot
+        if hot < 0:
+            raise forms.ValidationError('Значение не должно быть отрицательными.')
+        try:
+            meter = Meter.objects.all().filter(author=self.request.user).latest('id')
+            if hot < meter.hot:
+                raise forms.ValidationError('Новое значение должно быть не меньше предыдущего.')
+        except Meter.DoesNotExist:
+            pass
+        return hot
+
 
 
 class MeterFilterForm(forms.Form):
     choices = [('1', 'Все'), ('2', 'Месяц'), ('3', 'Квартал'), ('4', 'Год'), ]
     rangechoice = forms.ChoiceField(widget=forms.Select(), choices=(choices), required=True, label='Диапазон')
-    room = forms.ModelChoiceField(queryset=Profile.objects.all().values_list('room', flat=True), required=False, label='Квартира')
+    room = forms.ModelChoiceField(queryset=Profile.objects.all().order_by('-pk'), required=False, label='Квартира')

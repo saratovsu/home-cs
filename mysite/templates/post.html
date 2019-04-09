@@ -2,10 +2,7 @@
 {% load staticfiles my_filters %}
 
 {% block leftrow %}
-{% endblock %}
-
-{% block content %}
-    {% if user.is_superuser %}
+{% if user.is_superuser %}
     {% else %}
     <div class="card">
         <div class="card-body">
@@ -18,6 +15,18 @@
         </div>
     </div>
     {% endif %}
+    <div class="card">
+        <div class="card-body">
+            <form method="post" name="del-post-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input class="form-control btn btn-outline-success btn-sm" type="submit" value="Удалить последнее сообщение">
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+
     <div class="timeline">
         {% for post in posts %}
             <div class="card">

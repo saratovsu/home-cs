@@ -15,13 +15,13 @@ class Profile(models.Model):
     room = models.IntegerField(default=0, blank=True, null=True, verbose_name='Квартира')
 
     def __str__(self):
-        return f'{self.user.username}, {self.room} кв'
+        return str(self.room)
 
 
 class Post(models.Model):
     datetime = models.DateTimeField(verbose_name='Дата', auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Собственник', related_name="posts")
-    text = models.CharField(max_length=100, verbose_name='Сообщение', null=True, blank=True)
+    text = models.CharField(max_length=100, verbose_name='Сообщение', null=False, blank=False)
 
     class Meta:
         ordering = ["-datetime"]
