@@ -12,7 +12,7 @@ from django.views.generic import TemplateView
 from django_tables2 import RequestConfig
 from django.contrib.auth.decorators import login_required
 
-from .forms import RegisterForm, PostForm, MeterAddForm, MeterFilterForm
+from .forms import RegisterForm, PostForm, PostDeleteForm, MeterAddForm, MeterFilterForm
 #ProfileForm
 from .models import Profile, Post, Comment, Meter
 from .tables import MeterTable
@@ -141,6 +141,11 @@ class PostView(TemplateView):
                 if first is not None:
                         if Comment.objects.filter(post=first.id).count() == 0:
                             first.delete()
+                # form = PostDeleteForm(request.POST)
+                # if form.is_valid():
+                #     first = Post.objects.all().first()
+                #     first.delete()
+
 
         if request.user.is_superuser:
             post = Post.objects.all()

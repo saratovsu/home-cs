@@ -1,7 +1,7 @@
-# coding=utf-8
+
 from django import forms
 from django.contrib.auth.models import User
-from mysite.models import Profile, Post, Meter
+from mysite.models import Profile, Post, Meter, Comment
 from difflib import SequenceMatcher
 
 
@@ -48,7 +48,6 @@ class RegisterForm(forms.Form):
         return cleaned_data
 
 
-
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
@@ -59,6 +58,22 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         exclude = ['author']
+
+class PostDeleteForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = []
+
+    def clean(self):
+        print('clean')
+        cleaned_data = super(PostDeleteForm, self).clean()
+        first = Post.objects.all().first()
+        if first is None:
+            raise forms.ValidationError("Нет сообщений.")
+        if Comment.objects.filter(post=first.id).count() != 0:
+            raise forms.ValidationError("Нельзя удалять сообщения с комментариями.")
+        return cleaned_data
+
 
 class MeterAddForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
